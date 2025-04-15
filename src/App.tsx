@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -18,6 +17,7 @@ import CreateDocument from "./pages/CreateDocument";
 import EditDocument from "./pages/EditDocument";
 import SignDocument from "./pages/SignDocument";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +27,6 @@ const App = () => {
   const [user, setUser] = useState<User | null>(null);
   const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
 
-  // Check if user is logged in on app load (for demo only)
   useEffect(() => {
     const savedUser = localStorage.getItem("ppp_user");
     if (savedUser) {
@@ -40,7 +39,6 @@ const App = () => {
   }, []);
 
   const handleLogin = (email: string, password: string) => {
-    // In a real app, this would validate credentials against a database
     const mockUser: User = {
       id: "user-1",
       email,
@@ -56,7 +54,6 @@ const App = () => {
   };
 
   const handleRegister = (name: string, email: string, password: string) => {
-    // In a real app, this would create a user in the database
     const mockUser: User = {
       id: "user-1",
       email,
@@ -110,8 +107,6 @@ const App = () => {
   };
 
   const handleDownloadDocument = async (document: Document) => {
-    // In a real app, this would generate and download a PDF
-    // For demo purposes, we'll just show a toast
     toast({
       title: "Download started",
       description: `Downloading "${document.name}" as PDF...`,
@@ -125,7 +120,15 @@ const App = () => {
     });
   };
 
-  // Routes that require authentication
+  const handleUpdateProfile = (updatedUser: User) => {
+    setUser(updatedUser);
+    localStorage.setItem("ppp_user", JSON.stringify(updatedUser));
+    toast({
+      title: "Profile updated",
+      description: "Your profile has been updated successfully.",
+    });
+  };
+
   const protectedRoutes = (
     <>
       <Route 
@@ -171,6 +174,15 @@ const App = () => {
           />
         } 
       />
+      <Route 
+        path="/profile" 
+        element={
+          <Profile 
+            user={user} 
+            onUpdateProfile={handleUpdateProfile}
+          />
+        } 
+      />
     </>
   );
 
@@ -187,10 +199,8 @@ const App = () => {
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route path="/register" element={<Register onRegister={handleRegister} />} />
               
-              {/* Protected routes - only accessible when logged in */}
               {user ? protectedRoutes : null}
               
-              {/* If the user is not logged in and tries to access a protected route, redirect to login */}
               {!user && (
                 <>
                   <Route path="/documents" element={<Login onLogin={handleLogin} />} />

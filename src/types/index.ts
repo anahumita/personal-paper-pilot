@@ -1,8 +1,8 @@
-
 export interface User {
   id: string;
   email: string;
   name: string;
+  company?: string;
 }
 
 export interface Template {

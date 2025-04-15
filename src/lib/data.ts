@@ -1,28 +1,34 @@
-
 import { Template, Document } from "@/types";
 
 export const TEMPLATES: Template[] = [
   {
-    id: "service-agreement",
-    name: "Service Agreement",
-    description: "Standard contract for service providers and clients",
+    id: "freelance-agreement",
+    name: "Freelance Agreement",
+    description: "Contract for freelance work and services",
     imageUrl: "/placeholder.svg",
-    fields: ["clientName", "providerName", "service", "value", "date", "duration"],
+    fields: ["freelancerName", "clientName", "projectScope", "rate", "paymentTerms", "startDate", "duration"],
   },
   {
-    id: "nda",
-    name: "Non-Disclosure Agreement",
-    description: "Protect your confidential information",
-    imageUrl: "/placeholder.svg",
-    fields: ["partyName", "companyName", "purpose", "duration", "date"],
-  },
-  {
-    id: "employment",
+    id: "recruitment-contract",
     name: "Employment Contract",
-    description: "Standard employment agreement",
+    description: "Standard employment agreement for full-time positions",
     imageUrl: "/placeholder.svg",
-    fields: ["employeeName", "employerName", "position", "salary", "startDate", "benefits"],
+    fields: ["employeeName", "employerName", "position", "salary", "startDate", "benefits", "workHours"],
   },
+  {
+    id: "contractor-agreement",
+    name: "Independent Contractor Agreement",
+    description: "Agreement for independent contractors and companies",
+    imageUrl: "/placeholder.svg",
+    fields: ["contractorName", "companyName", "service", "rate", "paymentSchedule", "deliverables", "term"],
+  },
+  {
+    id: "consulting-agreement",
+    name: "Consulting Agreement",
+    description: "Professional consulting services contract",
+    imageUrl: "/placeholder.svg",
+    fields: ["consultantName", "clientName", "scope", "fee", "duration", "terms", "deliverables"],
+  }
 ];
 
 // Mock user documents
