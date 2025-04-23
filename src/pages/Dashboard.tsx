@@ -25,9 +25,30 @@ export default function Dashboard({ userId, onDownloadDocument }: DashboardProps
   useEffect(() => {
     const fetchDocuments = async () => {
       // In a real app, this would be an API call
-      // For now, use mock data
+      // For now, use mock data but enhance with localStorage data
       await new Promise(resolve => setTimeout(resolve, 800));
-      setDocuments(MOCK_DOCUMENTS.filter(doc => doc.userId === userId));
+      
+      // Get signed status from localStorage
+      const signedDocuments = JSON.parse(localStorage.getItem('signedDocuments') || '{}');
+      
+      // Update documents with signed status from localStorage
+      const updatedDocuments = MOCK_DOCUMENTS
+        .filter(doc => doc.userId === userId)
+        .map(doc => {
+          if (signedDocuments[doc.id]) {
+            return {
+              ...doc,
+              signed: true,
+              data: {
+                ...doc.data,
+                signatureUrl: signedDocuments[doc.id].signatureUrl
+              }
+            };
+          }
+          return doc;
+        });
+      
+      setDocuments(updatedDocuments);
       setIsLoading(false);
     };
     

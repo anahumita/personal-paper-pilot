@@ -33,11 +33,20 @@ export default function SignDocument({
   useEffect(() => {
     // Find the document by ID
     if (documentId) {
+      // Check if there's a signed status in localStorage first
+      const signedDocuments = JSON.parse(localStorage.getItem('signedDocuments') || '{}');
       const foundDocument = documents.find(d => d.id === documentId);
+      
       if (foundDocument) {
         if (foundDocument.userId !== userId) {
           setError("You don't have permission to access this document");
           return;
+        }
+        
+        // Update the signed status from localStorage if available
+        if (signedDocuments[documentId]) {
+          foundDocument.signed = true;
+          foundDocument.data.signatureUrl = signedDocuments[documentId].signatureUrl;
         }
         
         setDocument(foundDocument);
@@ -49,7 +58,7 @@ export default function SignDocument({
   }, [documentId, userId, documents]);
   
   const handleSign = (signatureUrl: string) => {
-    if (!document) return;
+    if (!document || !documentId) return;
     
     setIsLoading(true);
     
@@ -64,6 +73,15 @@ export default function SignDocument({
         },
         signed: true
       };
+      
+      // Save to localStorage
+      const signedDocuments = JSON.parse(localStorage.getItem('signedDocuments') || '{}');
+      signedDocuments[documentId] = {
+        signed: true,
+        signatureUrl,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('signedDocuments', JSON.stringify(signedDocuments));
       
       onDocumentSigned(updatedDocument, signatureUrl);
       setDocument(updatedDocument);
