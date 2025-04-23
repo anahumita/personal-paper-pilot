@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -71,6 +72,27 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
     ]))
   });
 
+  // Define the fieldGroups object before using it
+  const fieldGroups = {
+    essential: template.fields.filter(f => 
+      f.includes('name') || f.includes('date') || f.includes('address') || 
+      f.includes('title') || f.includes('scope') || f.includes('rate')
+    ),
+    details: template.fields.filter(f => 
+      f.includes('policy') || f.includes('requirements') || f.includes('terms') ||
+      f.includes('schedule') || f.includes('process')
+    ),
+    legal: template.fields.filter(f => 
+      f.includes('law') || f.includes('rights') || f.includes('liability') ||
+      f.includes('confidential') || f.includes('dispute')
+    ),
+    other: template.fields.filter(f => 
+      !fieldGroups.essential.includes(f) && 
+      !fieldGroups.details.includes(f) && 
+      !fieldGroups.legal.includes(f)
+    )
+  };
+
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -141,25 +163,12 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
     }
   };
 
-  const fieldGroups = {
-    essential: template.fields.filter(f => 
-      f.includes('name') || f.includes('date') || f.includes('address') || 
-      f.includes('title') || f.includes('scope') || f.includes('rate')
-    ),
-    details: template.fields.filter(f => 
-      f.includes('policy') || f.includes('requirements') || f.includes('terms') ||
-      f.includes('schedule') || f.includes('process')
-    ),
-    legal: template.fields.filter(f => 
-      f.includes('law') || f.includes('rights') || f.includes('liability') ||
-      f.includes('confidential') || f.includes('dispute')
-    ),
-    other: template.fields.filter(f => 
-      !fieldGroups.essential.includes(f) && 
-      !fieldGroups.details.includes(f) && 
-      !fieldGroups.legal.includes(f)
-    )
-  };
+  // Fixed circular reference by creating a new object for "other" fields
+  const otherFields = template.fields.filter(f => 
+    !fieldGroups.essential.includes(f) && 
+    !fieldGroups.details.includes(f) && 
+    !fieldGroups.legal.includes(f)
+  );
 
   const renderField = (field: string) => {
     const fieldLabel = field
@@ -348,7 +357,7 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
                 </TabsContent>
                 
                 <TabsContent value="other" className="space-y-4 pt-4">
-                  {fieldGroups.other.map(field => renderField(field))}
+                  {otherFields.map(field => renderField(field))}
                 </TabsContent>
               </Tabs>
             </div>
