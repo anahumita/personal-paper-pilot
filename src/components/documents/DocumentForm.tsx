@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -72,7 +71,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
     ]))
   });
 
-  // Define the fieldGroups object before using it
   const fieldGroups = {
     essential: template.fields.filter(f => 
       f.includes('name') || f.includes('date') || f.includes('address') || 
@@ -92,6 +90,12 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
       !fieldGroups.legal.includes(f)
     )
   };
+
+  const otherFields = template.fields.filter(f => 
+    !fieldGroups.essential.includes(f) && 
+    !fieldGroups.details.includes(f) && 
+    !fieldGroups.legal.includes(f)
+  );
 
   useEffect(() => {
     if (initialData) {
@@ -162,13 +166,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
       setIsSubmitting(false);
     }
   };
-
-  // Fixed circular reference by creating a new object for "other" fields
-  const otherFields = template.fields.filter(f => 
-    !fieldGroups.essential.includes(f) && 
-    !fieldGroups.details.includes(f) && 
-    !fieldGroups.legal.includes(f)
-  );
 
   const renderField = (field: string) => {
     const fieldLabel = field
@@ -315,7 +312,7 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
             )}
             
             {incompleteFields.length > 0 && (
-              <Alert variant="warning" className="bg-yellow-50">
+              <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Some fields are incomplete</AlertTitle>
                 <AlertDescription>
