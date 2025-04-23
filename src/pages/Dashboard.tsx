@@ -161,7 +161,23 @@ export default function Dashboard({ userId, onDownloadDocument }: DashboardProps
           </TabsContent>
           
           <TabsContent value="signed" className="m-0">
-            {!isLoading && sortedDocuments.length === 0 && (
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+                {[1, 2, 3].map((_, i) => (
+                  <div key={i} className="h-48 bg-muted rounded-lg"></div>
+                ))}
+              </div>
+            ) : sortedDocuments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sortedDocuments.map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    document={doc}
+                    onDownload={onDownloadDocument}
+                  />
+                ))}
+              </div>
+            ) : (
               <div className="text-center py-12 border rounded-lg bg-muted/10">
                 <div className="flex justify-center mb-4">
                   <div className="bg-muted p-4 rounded-full">
@@ -179,7 +195,23 @@ export default function Dashboard({ userId, onDownloadDocument }: DashboardProps
           </TabsContent>
           
           <TabsContent value="unsigned" className="m-0">
-            {!isLoading && sortedDocuments.length === 0 && (
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+                {[1, 2, 3].map((_, i) => (
+                  <div key={i} className="h-48 bg-muted rounded-lg"></div>
+                ))}
+              </div>
+            ) : sortedDocuments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sortedDocuments.map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    document={doc}
+                    onDownload={onDownloadDocument}
+                  />
+                ))}
+              </div>
+            ) : (
               <div className="text-center py-12 border rounded-lg bg-muted/10">
                 <div className="flex justify-center mb-4">
                   <div className="bg-muted p-4 rounded-full">
