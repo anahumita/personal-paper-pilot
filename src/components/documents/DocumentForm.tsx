@@ -8,11 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Template, ContractData } from "@/types";
-import { FileText, ArrowLeft, Calendar as CalendarIcon, ListCheck, AlertTriangle } from "lucide-react";
+import { FileText, ArrowLeft, Calendar as CalendarIcon, ListCheck } from "lucide-react";
 
 interface DocumentFormProps {
   template: Template;
@@ -41,8 +40,7 @@ const SUGGESTIONS = {
 const isDateField = (field: string) => 
   field.toLowerCase().includes('date') || 
   field.toLowerCase().includes('started') || 
-  field.toLowerCase().includes('ended') ||
-  field.toLowerCase().includes('period');
+  field.toLowerCase().includes('ended');
 
 const isCheckboxField = (field: string) =>
   field.startsWith('has') || 
@@ -59,8 +57,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [incompleteFields, setIncompleteFields] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState("essential");
   
   const [formData, setFormData] = useState<Record<string, any>>({
     templateId: template.id,
@@ -70,32 +66,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
       isCheckboxField(field) ? false : ""
     ]))
   });
-
-  const fieldGroups = {
-    essential: template.fields.filter(f => 
-      f.includes('name') || f.includes('date') || f.includes('address') || 
-      f.includes('title') || f.includes('scope') || f.includes('rate')
-    ),
-    details: template.fields.filter(f => 
-      f.includes('policy') || f.includes('requirements') || f.includes('terms') ||
-      f.includes('schedule') || f.includes('process')
-    ),
-    legal: template.fields.filter(f => 
-      f.includes('law') || f.includes('rights') || f.includes('liability') ||
-      f.includes('confidential') || f.includes('dispute')
-    ),
-    other: template.fields.filter(f => 
-      !fieldGroups.essential.includes(f) && 
-      !fieldGroups.details.includes(f) && 
-      !fieldGroups.legal.includes(f)
-    )
-  };
-
-  const otherFields = template.fields.filter(f => 
-    !fieldGroups.essential.includes(f) && 
-    !fieldGroups.details.includes(f) && 
-    !fieldGroups.legal.includes(f)
-  );
 
   useEffect(() => {
     if (initialData) {
@@ -145,21 +115,19 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
         throw new Error("Document name is required");
       }
 
-      const incomplete = template.fields.filter(field => 
+      const missingFields = template.fields.filter(field => 
         !formData[field] || formData[field].trim() === ""
       );
-      
-      setIncompleteFields(incomplete);
 
-      const filledData = { ...formData };
-      incomplete.forEach(field => {
-        if (!filledData[field] || filledData[field].trim() === "") {
-          filledData[field] = `[${field.replace(/([A-Z])/g, ' $1').trim()} to be determined]`;
-        }
-      });
+      if (missingFields.length > 0) {
+        throw new Error(`Please fill in the following required fields: ${missingFields
+          .map(f => f.replace(/([A-Z])/g, ' $1').trim())
+          .join(", ")}`);
+      }
 
       await new Promise(resolve => setTimeout(resolve, 800));
-      onSubmit(filledData as ContractData);
+      
+      onSubmit(formData as ContractData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -171,12 +139,10 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
     const fieldLabel = field
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, str => str.toUpperCase());
-    
-    const isIncomplete = incompleteFields.includes(field);
 
     if (isCheckboxField(field)) {
       return (
-        <div key={field} className="flex items-center space-x-2 p-4 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+        <div key={field} className="flex items-center space-x-2">
           <Checkbox 
             id={field}
             checked={formData[field] || false}
@@ -189,20 +155,15 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
 
     if (isDateField(field)) {
       return (
-        <div key={field} className="space-y-2">
-          <Label htmlFor={field} className="flex items-center gap-2">
-            {fieldLabel}
-            {isIncomplete && (
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            )}
-          </Label>
+        <div key={field}>
+          <Label htmlFor={field}>{fieldLabel}</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={`w-full justify-start text-left font-normal ${
                   !formData[field] && "text-muted-foreground"
-                } ${isIncomplete ? "border-yellow-500" : ""}`}
+                }`}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {formData[field] ? format(new Date(formData[field]), "PPP") : <span>Pick a date</span>}
@@ -230,13 +191,8 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
     const suggestions = getSuggestions(field);
     
     return (
-      <div key={field} className="space-y-2">
-        <Label htmlFor={field} className="flex items-center gap-2">
-          {fieldLabel}
-          {isIncomplete && (
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-          )}
-        </Label>
+      <div key={field}>
+        <Label htmlFor={field}>{fieldLabel}</Label>
         {isMultiline ? (
           <Textarea
             id={field}
@@ -244,7 +200,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
             value={formData[field] || ""}
             onChange={handleChange}
             rows={4}
-            className={isIncomplete ? "border-yellow-500" : ""}
           />
         ) : (
           <div className="space-y-2">
@@ -253,7 +208,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
               placeholder={`Enter ${fieldLabel.toLowerCase()}`}
               value={formData[field] || ""}
               onChange={handleChange}
-              className={isIncomplete ? "border-yellow-500" : ""}
             />
             {suggestions.length > 0 && (
               <div className="space-y-1">
@@ -281,7 +235,7 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto">
       <Button 
         variant="ghost" 
         size="sm" 
@@ -292,15 +246,14 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
         Back
       </Button>
       
-      <Card className="border-2">
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
             <CardTitle>{isEditing ? "Edit Document" : "Create New Document"}</CardTitle>
           </div>
           <CardDescription>
-            Fill in the details to {isEditing ? "update your" : "create a"} {template.name.toLowerCase()}. 
-            Fields marked with yellow can be completed later.
+            Fill in the details to {isEditing ? "update your" : "create a"} {template.name.toLowerCase()}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -311,56 +264,22 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
               </Alert>
             )}
             
-            {incompleteFields.length > 0 && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Some fields are incomplete</AlertTitle>
-                <AlertDescription>
-                  You can still create the document. Incomplete fields will be marked with placeholders.
-                </AlertDescription>
-              </Alert>
-            )}
-            
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name" className="text-lg font-semibold">Document Name</Label>
+                <Label htmlFor="name">Document Name</Label>
                 <Input 
                   id="name" 
                   placeholder="Enter a name for this document" 
                   value={formData.name || ""}
                   onChange={handleChange}
-                  className="text-lg"
                 />
               </div>
               
-              <Tabs defaultValue="essential" className="w-full" onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="essential">Essential Info</TabsTrigger>
-                  <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="legal">Legal</TabsTrigger>
-                  <TabsTrigger value="other">Other</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="essential" className="space-y-4 pt-4">
-                  {fieldGroups.essential.map(field => renderField(field))}
-                </TabsContent>
-                
-                <TabsContent value="details" className="space-y-4 pt-4">
-                  {fieldGroups.details.map(field => renderField(field))}
-                </TabsContent>
-                
-                <TabsContent value="legal" className="space-y-4 pt-4">
-                  {fieldGroups.legal.map(field => renderField(field))}
-                </TabsContent>
-                
-                <TabsContent value="other" className="space-y-4 pt-4">
-                  {otherFields.map(field => renderField(field))}
-                </TabsContent>
-              </Tabs>
+              {template.fields.map(field => renderField(field))}
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-between gap-2">
+        <CardFooter className="flex justify-end gap-2">
           <Button 
             variant="outline" 
             onClick={() => navigate(-1)}
@@ -371,7 +290,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
             type="submit"
             form="document-form"
             disabled={isSubmitting}
-            className="min-w-[150px]"
           >
             {isSubmitting 
               ? (isEditing ? "Saving..." : "Creating...") 
