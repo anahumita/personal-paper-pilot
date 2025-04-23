@@ -115,16 +115,6 @@ export function DocumentForm({ template, initialData, onSubmit, isEditing = fals
         throw new Error("Document name is required");
       }
 
-      const missingFields = template.fields.filter(field => 
-        !formData[field] || formData[field].trim() === ""
-      );
-
-      if (missingFields.length > 0) {
-        throw new Error(`Please fill in the following required fields: ${missingFields
-          .map(f => f.replace(/([A-Z])/g, ' $1').trim())
-          .join(", ")}`);
-      }
-
       await new Promise(resolve => setTimeout(resolve, 800));
       
       onSubmit(formData as ContractData);
